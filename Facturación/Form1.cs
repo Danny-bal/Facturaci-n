@@ -24,6 +24,7 @@ namespace Facturación
             InitializeDataGridView();
             LoadProductosAsync();
             CargarComboBoxTipoPago();
+            lblErrorUser.Text = "";
         }
 
         private void InitializeDataGridView()
@@ -66,13 +67,13 @@ namespace Facturación
             var cantidad = tbCantidad.Text;
             var vfpxc = Convert.ToInt32(cantidad) * selectedProduct.proprecioum;
 
-            
+
             // Obtener el ID del producto seleccionado
             var selectedProductId = cbProducts.SelectedValue;
             panelInformacion.Rows.Add(selectedProductId, selectedProduct.prodescripcion, selectedProduct.prounidadmedida, cantidad, selectedProduct.proprecioum, vfpxc);
 
             sumaProductos.Add(vfpxc);
-
+            suma = 0;
             foreach (var i in sumaProductos)
             {
                 suma += i;
@@ -80,25 +81,34 @@ namespace Facturación
 
             labelSuma.Text = suma.ToString();
 
-             sumaiva = suma * 0.12m;
+            sumaiva = suma * 0.12m;
             lableIva.Text = sumaiva.ToString();
 
-             sumaice = suma * 0.5m;
+            sumaice = suma * 0.5m;
 
             totalTxt.Text = (suma + sumaiva).ToString();
             var facturaId = await getFacturaId();
             var dataCliente = await clienteRepository.GetClientByCED(cedula);
-            
+
         }
 
         private async void btnBuscarCliente_Click(object sender, EventArgs e)
         {
+            lblErrorUser.Text = "";
             var facturaId = await getFacturaId();
             var cedula = tbCedula.Text;
             var dataCliente = await clienteRepository.GetClientByCED(cedula);
 
-            lblFacturaNumero.Text = facturaId;
-            labelClienteMostrar.Text = dataCliente.Data.clinombre;
+            if (dataCliente.Data == null)
+            {
+                lblErrorUser.Text = "Cliente inexistente baboso";
+            }
+            else
+            {
+                lblFacturaNumero.Text = facturaId;
+                labelClienteMostrar.Text = dataCliente.Data.clinombre;
+            }
+
         }
 
         public async Task<string> getFacturaId()
@@ -122,7 +132,7 @@ namespace Facturación
         }
 
         private async void button1_Click(object sender, EventArgs e)
-        {         
+        {
             var cedula = tbCedula.Text;
             var dataCliente = await clienteRepository.GetClientByCED(cedula);
             factura request = new factura
@@ -135,10 +145,24 @@ namespace Facturación
                 faciva = sumaiva,
                 facice = sumaice,
                 facformapago = cbTipoPago.SelectedValue.ToString(),
-                facstatus = "CAN"
+                facstatus = "PEN"
             };
 
             var insertFactura = await facturaRepository.InsertAsync(request);
+        }
+
+
+        private void aprovarFacturasToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Hide();
+            var verfacturas = new AprobarFacturas(facturaRepository, clienteRepository);
+            verfacturas.FormClosed += (s, args) => this.Show(); // Mostrar el formulario actual al cerrar el nuevo formulario
+            verfacturas.Show();
+        }
+
+        private void panelInformacion_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
         }
     }
 }

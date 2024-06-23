@@ -142,9 +142,14 @@ namespace Repository
             }
         }
 
-        public Task<Response<TEntity>> GetByIdAsync(string id)
+        public async Task<Response<TEntity>> GetByIdAsync(string id)
         {
-            throw new NotImplementedException();
+            return new()
+            {
+                Data = await dbSet.FindAsync(id),
+                Success = true,
+                Message = "OK",
+            };
         }
 
         public async Task<Response<cliente>> GetClientByCED(string cedula)
@@ -177,6 +182,20 @@ namespace Repository
             }
 
             return newId;
+        }
+
+        public async Task<Response<List<factura>>> GetFacturasByCliCed(string cedula)
+        {
+            var clicodigopasar = await dbContext.clientes.Where(y => y.cliidentificacion == cedula).FirstOrDefaultAsync();
+
+            var obtenerFacturas =  await dbContext.facturas.Where(x => x.clicodigo == clicodigopasar.clicodigo && x.facstatus != "CAN" ).ToListAsync();
+
+            return new()
+            {
+                Data = obtenerFacturas,
+                Success = true,
+                Message = "OK"
+            };
         }
     }
 }

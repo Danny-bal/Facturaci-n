@@ -13,7 +13,7 @@ namespace Repository
         Task<Response<bool>> DeleteAsync(string id);
         Task<Response<bool>> UpdateAsync(TEntity data);
         Task<Response<cliente>> GetClientByCED(string cedula);
-
+        Task<Response<List<factura>>> GetFacturasByCliCed(string cedula);
         Task<string> GenerateNewFacturaId();
         
     }
